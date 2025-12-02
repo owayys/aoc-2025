@@ -70,7 +70,7 @@ pub fn part_two(input: &str) -> Option<u64> {
     let mut zeros = 0;
 
     for line in input.lines() {
-        let command = Command::from_str(line).unwrap();
+        let command = Command::from_str(line).ok()?;
         let (new_state, count) = apply(state, command);
         zeros += count;
         state = new_state;
