@@ -4,5 +4,6 @@
 // see the documentation: https://zed.dev/docs/configuring-zed#settings-files
 {
     "disable_ai": true,
-    "show_completions_on_input": false
+    "show_completions_on_input": false,
+    "show_edit_predictions": false
 }
