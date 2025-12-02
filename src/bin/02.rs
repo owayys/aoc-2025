@@ -27,28 +27,23 @@ impl FromStr for IDRange {
         }
     }
 }
+pub fn is_id_invalid_1(id: u64) -> bool {
+    let s = id.to_string();
+    let b = s.as_bytes();
+    let len = b.len();
 
-pub fn get_halves(s: String) -> Option<(String, String)> {
-    if s.chars().count() % 2 != 0 {
-        None
-    } else {
-        let halves = s.split_at(s.chars().count() / 2);
-        Some((halves.0.to_string(), halves.1.to_string()))
-    }
+    len % 2 == 0 && &b[..len / 2] == &b[len / 2..]
 }
 
-pub fn is_id_invalid(id: u64) -> bool {
-    let str = id.to_string();
-
-    match get_halves(str) {
-        Some((h1, h2)) => h1 == h2,
-        None => false,
-    }
+pub fn is_id_invalid_2(id: u64) -> bool {
+    let s = id.to_string();
+    let ss = s.clone() + &s;
+    ss[1..ss.len() - 1].contains(&s)
 }
 
-pub fn extract_invalid(range: &IDRange) -> Vec<u64> {
+pub fn extract_invalid(range: &IDRange, invalid_fn: fn(u64) -> bool) -> Vec<u64> {
     (range.from..range.to)
-        .filter(|&id| is_id_invalid(id))
+        .filter(|&id| invalid_fn(id))
         .collect()
 }
 
@@ -58,13 +53,16 @@ pub fn part_one(input: &str) -> Option<u64> {
         return None;
     }
 
-    let ranges_result: Result<Vec<IDRange>, &str> =
+    let id_ranges_result: Result<Vec<IDRange>, &str> =
         input_str.split(",").map(|s| IDRange::from_str(s)).collect();
 
-    match ranges_result {
-        Ok(ranges) => {
-            let test: Vec<u64> = ranges.iter().flat_map(|r| extract_invalid(r)).collect();
-            Some(test.into_iter().fold(0, |acc, x| acc + x))
+    match id_ranges_result {
+        Ok(id_ranges) => {
+            let invalid_ids: Vec<u64> = id_ranges
+                .iter()
+                .flat_map(|r| extract_invalid(r, is_id_invalid_1))
+                .collect();
+            Some(invalid_ids.into_iter().fold(0, |acc, x| acc + x))
         }
         Err(_) => None,
     }
@@ -76,7 +74,19 @@ pub fn part_two(input: &str) -> Option<u64> {
         return None;
     }
 
-    None
+    let id_ranges_result: Result<Vec<IDRange>, &str> =
+        input_str.split(",").map(|s| IDRange::from_str(s)).collect();
+
+    match id_ranges_result {
+        Ok(id_ranges) => {
+            let invalid_ids: Vec<u64> = id_ranges
+                .iter()
+                .flat_map(|r| extract_invalid(r, is_id_invalid_2))
+                .collect();
+            Some(invalid_ids.into_iter().fold(0, |acc, x| acc + x))
+        }
+        Err(_) => None,
+    }
 }
 
 #[cfg(test)]
