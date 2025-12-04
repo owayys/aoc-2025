@@ -1,5 +1,32 @@
 advent_of_code::solution!(4);
 
+const ADJACENTS: [(i32, i32); 8] = [
+    (-1, -1),
+    (-1, 0),
+    (-1, 1),
+    (0, -1),
+    (0, 1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+];
+
+fn count_adjacent(grid: &[Vec<char>], row: usize, col: usize) -> usize {
+    let height = grid.len() as i32;
+    let width = grid[0].len() as i32;
+
+    ADJACENTS
+        .iter()
+        .filter(|&&(dr, dc)| {
+            let nr = row as i32 + dr;
+            let nc = col as i32 + dc;
+            (0..height).contains(&nr)
+                && (0..width).contains(&nc)
+                && (grid[nr as usize][nc as usize] == '@' || grid[nr as usize][nc as usize] == 'r')
+        })
+        .count()
+}
+
 pub fn part_one(input: &str) -> Option<u64> {
     let input_str = input.trim();
     if input_str.is_empty() {
@@ -22,27 +49,7 @@ pub fn part_one(input: &str) -> Option<u64> {
                 continue;
             }
 
-            let adjacent_rolls = [
-                (-1, -1),
-                (-1, 0),
-                (-1, 1),
-                (0, -1),
-                (0, 1),
-                (1, -1),
-                (1, 0),
-                (1, 1),
-            ]
-            .iter()
-            .filter(|&&(dr, dc)| {
-                let nr = row as i32 + dr;
-                let nc = col as i32 + dc;
-                nr >= 0
-                    && nr < height as i32
-                    && nc >= 0
-                    && nc < width as i32
-                    && roll_grid[nr as usize][nc as usize] == '@'
-            })
-            .count();
+            let adjacent_rolls = count_adjacent(&roll_grid, row, col);
 
             if adjacent_rolls < 4 {
                 valid_rolls += 1;
@@ -74,10 +81,10 @@ pub fn part_two(input: &str) -> Option<u64> {
     while rolls_removable {
         let mut rolls_removed_in_turn = 0;
 
-        for row in 0..height {
-            for col in 0..width {
-                if roll_grid[row][col] == 'r' {
-                    roll_grid[row][col] = 'x';
+        for row in roll_grid.iter_mut() {
+            for cell in row.iter_mut() {
+                if *cell == 'r' {
+                    *cell = 'x';
                 }
             }
         }
@@ -88,28 +95,7 @@ pub fn part_two(input: &str) -> Option<u64> {
                     continue;
                 }
 
-                let adjacent_rolls = [
-                    (-1, -1),
-                    (-1, 0),
-                    (-1, 1),
-                    (0, -1),
-                    (0, 1),
-                    (1, -1),
-                    (1, 0),
-                    (1, 1),
-                ]
-                .iter()
-                .filter(|&&(dr, dc)| {
-                    let nr = row as i32 + dr;
-                    let nc = col as i32 + dc;
-                    nr >= 0
-                        && nr < height as i32
-                        && nc >= 0
-                        && nc < width as i32
-                        && (roll_grid[nr as usize][nc as usize] == '@'
-                            || roll_grid[nr as usize][nc as usize] == 'r')
-                })
-                .count();
+                let adjacent_rolls = count_adjacent(&roll_grid, row, col);
 
                 if adjacent_rolls < 4 {
                     roll_grid[row][col] = 'r';
