@@ -27,7 +27,7 @@ pub fn apply_cephaloperation(cephaloperands: &Vec<u64>, cephaloperator: &Cephalo
     }
 }
 
-pub fn parse_cephaloperations_1(input: &str) -> (Vec<Vec<u64>>, Vec<Cephaloperator>) {
+pub fn parse_cephaloperations_by_row(input: &str) -> (Vec<Vec<u64>>, Vec<Cephaloperator>) {
     let mut input_lines = input.lines().peekable();
 
     let mut input_matrix: Vec<Vec<u64>> = vec![];
@@ -60,51 +60,43 @@ pub fn parse_cephaloperations_1(input: &str) -> (Vec<Vec<u64>>, Vec<Cephaloperat
     (input_matrix, op_vec)
 }
 
-pub fn parse_cephaloperations_2(input: &str) -> Option<(Vec<Vec<u64>>, Vec<Cephaloperator>)> {
+pub fn parse_cephaloperations_by_col(input: &str) -> Option<(Vec<Vec<u64>>, Vec<Cephaloperator>)> {
     let input_mat_unparsed: Vec<&str> = input.lines().collect();
     let num_inputs_len = input_mat_unparsed.len() - 1;
     let ops_unparsed = input_mat_unparsed.last()?;
 
     let mut input_matrix: Vec<Vec<u64>> = vec![];
-    let mut op_vec = vec![];
+    let mut op_vec: Vec<Cephaloperator> = vec![];
 
-    let mut curr_op_index = 0;
-    let mut parsed_ops_len = vec![];
+    let mut curr_inputs: Vec<String> = vec![];
 
-    for (i, c) in ops_unparsed.chars().enumerate() {
-        match c {
-            '*' | '+' => {
-                op_vec.push(c.to_string().parse::<Cephaloperator>().ok()?);
-                parsed_ops_len.push((i, i));
-                if i != 0 {
-                    curr_op_index += 1;
+    for (rev_idx, op_char) in ops_unparsed.chars().rev().enumerate() {
+        let c = ops_unparsed.len() - rev_idx;
+        for r in 0..num_inputs_len {
+            match curr_inputs.last_mut() {
+                Some(curr_input) => {
+                    *curr_input = format!(
+                        "{}{}",
+                        *curr_input,
+                        input_mat_unparsed[r].chars().nth(c - 1)?
+                    )
                 }
-            }
-            _ => parsed_ops_len[curr_op_index].1 += 1,
-        }
-    }
-
-    parsed_ops_len[curr_op_index].1 += 1;
-
-    for (i, _op) in op_vec.iter().enumerate() {
-        let mut curr_input = vec!["".to_string(); num_inputs_len];
-
-        for (c_idx, c) in (parsed_ops_len[i].0..parsed_ops_len[i].1).enumerate() {
-            for r in 0..num_inputs_len {
-                curr_input[c_idx] = format!(
-                    "{}{}",
-                    curr_input[c_idx],
-                    input_mat_unparsed[r].chars().nth(c)?
-                )
+                None => (),
             }
         }
-
-        input_matrix.push(
-            curr_input
-                .iter()
-                .filter_map(|s| s.trim().parse::<u64>().ok())
-                .collect::<Vec<u64>>(),
-        )
+        match op_char.to_string().parse::<Cephaloperator>() {
+            Ok(op) => {
+                op_vec.push(op);
+                input_matrix.push(
+                    curr_inputs
+                        .iter()
+                        .filter_map(|s| s.trim().parse::<u64>().ok())
+                        .collect::<Vec<u64>>(),
+                );
+                curr_inputs.clear();
+            }
+            Err(_) => curr_inputs.push(String::new()),
+        }
     }
 
     Some((input_matrix, op_vec))
@@ -116,7 +108,7 @@ pub fn part_one(input: &str) -> Option<u64> {
         return None;
     }
 
-    let (parsed_operands, parsed_operators) = parse_cephaloperations_1(input);
+    let (parsed_operands, parsed_operators) = parse_cephaloperations_by_row(input);
 
     if parsed_operands.len() != parsed_operators.len() {
         return None;
@@ -139,7 +131,7 @@ pub fn part_two(input: &str) -> Option<u64> {
         return None;
     }
 
-    let (parsed_operands, parsed_operators) = parse_cephaloperations_2(input)?;
+    let (parsed_operands, parsed_operators) = parse_cephaloperations_by_col(input)?;
 
     if parsed_operands.len() != parsed_operators.len() {
         return None;
