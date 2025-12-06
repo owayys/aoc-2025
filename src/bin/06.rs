@@ -63,10 +63,7 @@ pub fn parse_cephaloperations_1(input: &str) -> (Vec<Vec<u64>>, Vec<Cephaloperat
 pub fn parse_cephaloperations_2(input: &str) -> Option<(Vec<Vec<u64>>, Vec<Cephaloperator>)> {
     let input_mat_unparsed: Vec<&str> = input.lines().collect();
     let num_inputs_len = input_mat_unparsed.len() - 1;
-    let ops_unparsed = match input_mat_unparsed.last() {
-        Some(o) => o,
-        None => "",
-    };
+    let ops_unparsed = input_mat_unparsed.last()?;
 
     let mut input_matrix: Vec<Vec<u64>> = vec![];
     let mut op_vec = vec![];
